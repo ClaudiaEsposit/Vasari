@@ -1,0 +1,14 @@
+library(renv)
+renv::init
+#---------------------------- a)Intro --------------------------------------####
+cat('\014')
+rm(list=ls())
+setwd("~/Vasari")
+source("Library.R")
+source("Functions.R")
+source("Vanilla.R")
+source("Tables.R")
+source("Info_providing.R")
+source("Loans_level.R")
+source("Borrower_level.R")
+source("Info_excel.R")
