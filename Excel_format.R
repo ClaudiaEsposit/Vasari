@@ -35,7 +35,7 @@ applyCustomStyles <- function(wb, sheet,df, startRow, startCol) {
   for (row in 1:(nrow(df))) {
     if (df[row, 1] == "Bank Accounts Tot." || df[row, 1] == "Individual Tot." ||df[row, 1] == "Corporate Tot." ||
         df[row, 1] == "Mortgages Tot."|| df[row, 1] == "Personal Loans Tot."|| df[row, 1] == "Employee-Permanent Tot."
-        || df[row, 1] == "Employee-Temporary Tot."|| df[row, 1] == "Pensioner Tot.") {
+        || df[row, 1] == "Employee-Temporary Tot."|| df[row, 1] == "Pensioner Tot."|| df[row, 1] == "Insolvent Tot.") {
       addStyle(wb, sheet, style = group_style, rows = startRow + row, cols = startCol:(startCol + ncol(df) - 1), gridExpand = TRUE, stack = TRUE)
     }
   }

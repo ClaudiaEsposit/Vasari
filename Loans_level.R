@@ -6,7 +6,6 @@ source("Library.R")
 source("Functions.R")
 source("Vanilla.R")
 source("Tables.R")
-source("Info_providing.R")
 #-----------------------------c)Loans_level--------------------------------####
 numb.loans <- n_distinct(Loans_table$id.loan)
 sum.gbv <- sum(Loans_table$gbv.original)
@@ -55,24 +54,19 @@ gbv_help <- filtered_data %>%
   group_by(type) %>%
   summarize(
     numb.loan = n_distinct(id.loan),perc.loan = sum(numb.loan) / sum(numb.loans),gbv_tot = sum(gbv),
-    mean.gbv = gbv_tot/numb.loan,perc.gbv = sum(gbv_tot) / sum(sum.gbv),
-    capital = sum(principal_tot),mean.capital = capital/numb.loan,
-    perc.capital = sum(principal_tot) / sum(sum.principal_tot)
+    mean.gbv = gbv_tot/numb.loan,perc.gbv = sum(gbv_tot) / sum(sum.gbv)
   )
 
 total_row <- data.frame(
   type = "Total",numb.loan = sum(gbv_help$numb.loan),
   gbv_tot = sum(gbv_help$gbv_tot), perc.loan = sum(gbv_help$perc.loan),
   mean.gbv = sum(gbv_help$mean.gbv * gbv_help$numb.loan) / sum(gbv_help$numb.loan),
-  perc.gbv = sum(gbv_help$perc.gbv),capital=sum(gbv_help$capital),
-  mean.capital = sum(gbv_help$mean.capital * gbv_help$numb.loan) / sum(gbv_help$numb.loan),
-  perc.capital = sum(gbv_help$perc.capital))
+  perc.gbv = sum(gbv_help$perc.gbv))
 
 updated_df <- bind_rows(gbv_help, total_row)
 updated_df<-updated_df%>%
   rename("Type of Loans"=type,"N Loan"=numb.loan,
-         "% Loan"=perc.loan,"GBV(€k)"=gbv_tot,"Mean GBV(€k)"=mean.gbv,"% GBV"=perc.gbv,
-         "Capital(€k)"=capital,"Mean Capital(€k)"=mean.capital,"% Capital"=perc.capital)%>%
+         "% Loan"=perc.loan,"GBV(€k)"=gbv_tot,"Mean GBV(€k)"=mean.gbv,"% GBV"=perc.gbv)%>%
   arrange(factor(`Type of Loans`, levels = c("Total","individual", "co-owners","legal person")))
 updated_df$`Type of Loans` <- str_to_title(updated_df$`Type of Loans`)
 
@@ -82,17 +76,13 @@ range <- filtered_data %>%
   group_by(type,range.gbv) %>%
   summarize(
     numb.loan = n(),perc.loan = sum(numb.loan) / sum(numb.loans),gbv_tot = sum(gbv),
-    mean.gbv = gbv_tot/numb.loan,perc.gbv = sum(gbv_tot) / sum(sum.gbv),
-    capital = sum(principal_tot),mean.capital = capital/numb.loan,
-    perc.capital = sum(principal_tot) / sum(sum.principal_tot)
+    mean.gbv = gbv_tot/numb.loan,perc.gbv = sum(gbv_tot) / sum(sum.gbv)
   )
 total_row_range <- data.frame(
   type = "Total",range.gbv=" ",numb.loan = sum(range$numb.loan),
   gbv_tot = sum(range$gbv_tot), perc.loan = sum(range$perc.loan),
   mean.gbv = sum(range$mean.gbv * range$numb.loan) / sum(range$numb.loan),
-  perc.gbv = sum(range$perc.gbv),capital=sum(range$capital),
-  mean.capital = sum(range$mean.capital * range$numb.loan) / sum(range$numb.loan),
-  perc.capital = sum(range$perc.capital))
+  perc.gbv = sum(range$perc.gbv))
 
 total_range_col <- range %>%
   group_by(type) %>%
@@ -102,15 +92,12 @@ total_range_col <- range %>%
             range.gbv = "",gbv_tot = sum(gbv_tot),
             numb.loan = sum(numb.loan),perc.loan = sum(perc.loan),
             mean.gbv =gbv_tot / numb.loan,
-            perc.gbv = sum(perc.gbv),capital = sum(capital),
-            mean.capital = capital/numb.loan,
-            perc.capital = sum(perc.capital))
+            perc.gbv = sum(perc.gbv))
 total_range_col <- as.data.frame(total_range_col)
 updated_range <- bind_rows(range, total_row_range,total_range_col)
 updated_range<-updated_range%>%
   rename("Type of Loans"=type,"Range GBV"=range.gbv,"N Loan"=numb.loan,
-         "% Loan"=perc.loan,"GBV(€k)"=gbv_tot,"Mean GBV(€k)"=mean.gbv,"% GBV"=perc.gbv,
-         "Capital(€k)"=capital,"Mean Capital(€k)"=mean.capital,"% Capital"=perc.capital)%>%
+         "% Loan"=perc.loan,"GBV(€k)"=gbv_tot,"Mean GBV(€k)"=mean.gbv,"% GBV"=perc.gbv)%>%
   arrange(factor(`Range GBV`,levels = c("Total","0-10k", "10-50k", "50-100k", "100k+")))
 
 custom_levels <- c("Total", "Bank Accounts Tot.","bank accounts", "Mortgages Tot.","mortgages","Personal Loans Tot.","personal loans")
@@ -239,6 +226,8 @@ applyStylesToColumns(wb,1, updated_range, column_types, startRow=startRow_range,
 writeData(wb, 1, x = "Range GBV by type of Loans", startCol = startCol, startRow = startRow_range-1)
 mergeCells(wb, 1, startCol:(startCol + ncol(updated_range) - 1), rows = startRow_range-1)
 applyCustomStyles(wb,1, updated_range, startRow_range, startCol)
+addStyle(wb, sheet = 1, style = highlight_value, rows = startRow_range+3, cols = highlight_col+1,stack = TRUE)
+addStyle(wb, sheet = 1, style = highlight_value, rows = startRow_range+11, cols = highlight_col+1,stack = TRUE)
 
 #formatting VINTAGE
 startRow_vintage <- startRow_range+nrow(updated_range)+3
@@ -248,6 +237,10 @@ applyStylesToColumns(wb,1, updated_vintage, column_types, startRow=startRow_vint
 writeData(wb, 1, x = "Range Vintage by Loan", startCol = startCol, startRow = startRow_vintage-1)
 mergeCells(wb, 1, startCol:(startCol + ncol(updated_vintage) - 1), rows = startRow_vintage-1)
 applyCustomStyles(wb,1, updated_vintage, startRow_vintage, startCol)
+addStyle(wb, sheet = 1, style = highlight_value, rows = startRow_vintage+3, cols = highlight_col+1,stack = TRUE)
+addStyle(wb, sheet = 1, style = highlight_value, rows = startRow_vintage+7, cols = highlight_col+1,stack = TRUE)
+addStyle(wb, sheet = 1, style = highlight_value, rows = startRow_vintage+12, cols = highlight_col+1,stack = TRUE)
+
 
 #Range tot gbv
 startRow_GBV <- startRow_vintage+nrow(updated_vintage)+3
@@ -271,6 +264,7 @@ applyCustomStyles(wb,1, updated_vintage_tot, startRow_vt, startCol)
 # Range GBV plot
 plot_range <- updated_range_tot[-1,]
 plot_range$GBV_formatted <- scales::number(plot_range$`GBV(€k)`, scale = 1e-6, accuracy = 0.1)
+plot_range$`Range GBV` <- factor(plot_range$`Range GBV`, levels = c("0-10k", "10-50k", "50-100k","100k+"))
 range_plot <- ggplot(data = plot_range, aes(x = `Range GBV`, y = `GBV(€k)`)) +
   geom_bar(stat = "identity", fill = "slateblue4") +
   geom_smooth() +
@@ -283,7 +277,7 @@ range_plot <- ggplot(data = plot_range, aes(x = `Range GBV`, y = `GBV(€k)`)) +
   scale_y_continuous(labels = scales::comma) +
   theme_minimal()
 range_plot_with_labels <- range_plot +
-  geom_text(aes(label = GBV_formatted), hjust = -0.1, vjust = 0.001)
+  geom_text(aes(label = GBV_formatted, group = `Range GBV`), hjust = -0.1, vjust = 0.001)
 print(range_plot_with_labels)
 # Insert the Range GBV plot
 insertPlot(wb, 1, width = 6, height = 4, xy = NULL, startRow = startRow_vintage,

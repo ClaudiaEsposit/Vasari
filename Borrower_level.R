@@ -31,12 +31,13 @@ entities.loans <- Entities  %>%
   left_join(Counterparties,by = 'id.counterparty') %>%
   filter(role=='borrower' ) %>%
   left_join(Loans_table,by = 'id.bor',relationship = "many-to-many")
+
+
 ent.by.type <- entities.loans %>% 
-  select(type.subject,id.bor,gbv.original,type,province,area,range.age) %>% distinct() %>%
+  select(type.subject,id.bor,gbv.original,province,type,area) %>% distinct(id.bor,gbv.original,area,.keep_all = TRUE)%>%
   group_by(id.bor) %>% 
-  summarise(gbv.original= ifelse('individual' %in% type.subject & 'corporate' %in% type.subject,sum(gbv.original[type.subject=='individual']),sum(gbv.original)),
-            type.subject = ifelse('individual' %in% type.subject,'individual','corporate'),type=first(type),
-            province=first(province),area=first(area),range.age=first(range.age))
+  summarise(gbv.original=sum(gbv.original),area=first(area),province=first(province),
+            type=first(type),type.subject=first(type.subject))
 
 #gbv range column
 add_gbv_range <- function(data) {
@@ -219,20 +220,6 @@ updated_range_tot<-updated_range_tot%>%
   arrange(factor(`Range GBV`,levels = c("Total","0-50k", "50-100k","100k+")))
 updated_range_tot$`Range GBV` <- str_to_title(updated_range_tot$`Range GBV`)
 
-#age
-age <- ent.by.type%>%
-  filter(type.subject=="individual")%>%
-  group_by(range.age)%>%
-  summarise(age.range=n())
-age_total <- ent.by.type %>%
-  summarize(
-    range.age="Total",
-    age.range=sum(age$age.range)
-  )
-updated_age <- bind_rows(age, age_total)%>%arrange(factor(range.age,levels=c("Total","75+","65-75",
-"50-65","25-50")))%>%
-  rename("Range age"=range.age,"N Individual"=age.range)
-updated_age$`Range age` <- ifelse(is.na(updated_age$`Range age`), "N/A", updated_age$`Range age`)
 
 #------------------------------d)Excel-------------------------------------####
 
@@ -314,21 +301,6 @@ applyCustomStyles(wb,2, updated_range_tot, startRow_GBV, startCol)
 addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_GBV+4, cols = startCol+1,stack = TRUE)
 addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_GBV+4, cols = startCol+3,stack = TRUE)
 
-#Range age
-startRow_age <- startRow_GBV+nrow(updated_range_tot)+3
-writeDataTable(wb,2, updated_age, startRow = startRow_age, startCol = startCol, tableStyle = "TableStylelight9")
-column_types <- c("general", "number")
-applyStylesToColumns(wb,2, updated_age, column_types, startRow_age, startCol)
-writeData(wb, 2, x = "Range Age by Individual", startCol, startRow_age-1)
-mergeCells(wb, 2, startCol:(startCol + ncol(updated_age) - 1),startRow_age-1)
-applyCustomStyles <- function(wb, sheet,df, startRow, startCol) {
-  addStyle(wb, sheet, style = title_style, rows = startRow - 1, cols = startCol:(startCol + ncol(df) - 1), gridExpand = TRUE)
-  addStyle(wb, sheet, style = highlight_style, rows = startRow + 1, cols = startCol:(startCol + ncol(df) - 1), gridExpand = TRUE, stack = TRUE)
-  addStyle(wb, sheet, style = section_style, rows = startRow + nrow(df), cols = startCol:(startCol + ncol(df) - 1), gridExpand = TRUE, stack = TRUE)
-}
-addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_age+4, cols = startCol+1,stack = TRUE)
-
-applyCustomStyles(wb,2, updated_age, startRow_age, startCol)
 
 
 #------------------------------e)Plot-------------------------------------####
