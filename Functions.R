@@ -323,8 +323,20 @@ divide_column_by_character <- function(dataframe, column_name, separator) {
     separate_rows({{column_name}}, sep = separator, convert = TRUE) %>%
     mutate_all(~str_trim(., 'left')) %>% mutate_all(~str_trim(., 'right'))
 }
+
 # Running example:
 # NDG_N <- divide_column_by_character(NDG_N, "Judicial.Procedures.CODE", "\\+ ")
+divide_column_by_character_piva <-function(dataframe, column_names, separator) {
+  dataframe %>%
+    mutate(across(all_of(column_names), ~ ifelse(is.na(.), "NA", .))) %>%
+    rowwise() %>%
+    separate_rows(all_of(column_names), sep = separator, convert = TRUE) %>%
+    mutate_all(~str_trim(., 'left')) %>%
+    mutate_all(~str_trim(., 'right'))
+}
+
+
+
 
 
 clean_cf.piva <- function(column) {

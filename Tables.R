@@ -1,4 +1,9 @@
-
+#---------------------------- a)Intro --------------------------------------####
+cat('\014')
+rm(list=ls())
+source("Library.R")
+source("Functions.R")
+source("Vanilla.R")
 #----------------------------- b)Check -------------------------------------####
 Loans_check<- Loans%>%
   select(id.loan,id.bor,gbv.original,principal,interest,expenses,date.status)%>%
@@ -58,8 +63,17 @@ NDG <- NDG %>%
     cf.piva = ifelse(
       !is.na(pf) & is.na(cf), pf,
       ifelse(!is.na(cf) & is.na(pf), cf,
-             ifelse(is.na(cf) & is.na(pf), NA, 
-                    ifelse(cf != pf, paste0(cf, ",", pf), pf))
+             ifelse(is.na(cf) & is.na(pf),
+                    apply(select(., starts_with("codice_fiscale")), 1, function(row) {
+                      non_na_values <- row[!is.na(row)]
+                      if (length(non_na_values) > 0) {
+                        return(paste(non_na_values, collapse = ","))
+                      } else {
+                        return(NA)
+                      }
+                    }),
+                    ifelse(cf != pf, paste0(cf, ",", pf), pf)
+             )
       )
     )
   )
@@ -91,17 +105,18 @@ Counterparties$id.group <- ifelse(is.na(Counterparties$id.group),"-", Counterpar
 #-------------------------- f)Entities_Table -------------------------------####
 
 entities <- NDG %>% select(id.bor, name, cf.piva,type.subject=type.pg, city, province)
-entities <- divide_column_by_character(entities, name, ",")
+entities <- divide_column_by_character_piva(entities, c("name", "cf.piva"), ",")
 entities <- entities %>% distinct()
 
-entities <- entities %>% group_by(name) %>% 
+entities <- entities %>%
+  group_by(name, cf.piva) %>%
   summarise(
     id.bor = paste(id.bor, collapse = ","),
-    cf.piva = ifelse(all(is.na(cf.piva)), NA, cf.piva[!is.na(cf.piva)]),
+    type.subject = first(type.subject),
     city = first(city),
-    province = first(province))
-entities <- divide_column_by_character(entities, cf.piva, ",")
-
+    province = first(province)
+  )%>%
+  ungroup()
 #id
 entities$id.entity <- paste0("e_", seq_len(nrow(entities))) 
 
@@ -149,3 +164,12 @@ Entities$province <- Geo$province[match(Entities$province, Geo$descr.prov)]
 Entities$region <- Geo$region[match(Entities$province, Geo$province)]
 Entities$area <- Geo$area[match(Entities$region, Geo$region)]
 
+PROVA<-NDG%>%
+  select(cf.piva)%>%
+  divide_column_by_character(cf.piva,",")%>%
+  distinct()
+prova<-Entities%>%
+  select(cf.piva)%>%
+  distinct()
+all_values_present <- all(PROVA$cf.piva %in% prova$cf.piva)
+values_not_present <- PROVA$cf.piva[!PROVA$cf.piva %in% prova$cf.piva]
