@@ -1,11 +1,6 @@
-cat('\014')
-rm(list=ls())
-setwd("~/Vasari")
-source("Library.R")
-source("Functions.R")
-source("Vanilla.R")
-source("Tables.R")
-source("Info_providing.R")
+
+source("Gaur_table.R")
+
 #---------------a)Info_pf-------------####
 Insolvent_table<-Entities%>%
   filter(type.subject=="individual")%>%
@@ -78,7 +73,7 @@ Solv_table<-Entities%>%
   group_by(solvency.pf)%>%
   summarise(max=max(income.pf),min=min(income.pf))%>%
   arrange(solvency.pf) %>%
-  rename("Solvency type"=solvency.pf,"Max Income"=max,"Min Income"=min)
+  rename("Solvency type"=solvency.pf,"Max Income Net"=max,"Min Income Net"=min)
 Solv_table$`Solvency type` <- str_to_title(Solv_table$`Solvency type`)
 
 #---------------------b)Info_pg---------------------------------------------####
@@ -107,7 +102,7 @@ total_status <- data.frame(
   Status = "Total",num = sum(Status_table$num))
 updated_status <- bind_rows(Status_table, total_status)
 updated_status<-updated_status%>%
-  arrange(factor(Status,levels = c("Total","active", "ceased","canceled","insolvency","liquidation","N/A")))%>%
+  arrange(factor(Status,levels = c("Total","active", "bankruptcy","canceled","insolvency","liquidation","N/A")))%>%
   rename("N Corporate"=num)
 updated_status$Status <- str_to_title(updated_status$Status)
 
@@ -202,7 +197,7 @@ startRow_income <- startRow_sol+nrow(updated_range)+5
 writeDataTable(wb, 3, Solv_table, startRow = startRow_income, startCol = startCol, tableStyle = "TableStylelight9")
 column_types <- c("general", "number","number")
 applyStylesToColumns(wb,3, Solv_table, column_types, startRow_income,startCol)
-writeData(wb, 3, x = "Solvent Income", startCol =startCol, startRow = startRow_income-1)
+writeData(wb, 3, x = "Solvent Income Net", startCol =startCol, startRow = startRow_income-1)
 mergeCells(wb, 3, startCol:(startCol + ncol(Solv_table) - 1), rows = startRow_income-1)
 addStyle(wb, 3, style = title_style,rows = startRow_income-1, cols = startCol:(startCol + ncol(Solv_table) - 1), gridExpand = TRUE)
 addStyle(wb, 3, style = section_style,rows = startRow_income+nrow(Solv_table),
@@ -255,6 +250,16 @@ applyCustomStyles(wb, 3, updated_range, startRow_sol, startcoll)
 addStyle(wb, sheet = 3, style = highlight_value, rows = startRow_sol+3, cols = startcoll+2,stack = TRUE)
 addStyle(wb, sheet = 3, style = highlight_value, rows = startRow_sol+8, cols = startcoll+2,stack = TRUE)
 addStyle(wb, sheet = 3, style = highlight_value, rows = startRow_sol+13, cols = startcoll+2,stack = TRUE)
+
+startRow_ga <- startRow_corp_type+nrow(updated_type)+3
+writeDataTable(wb, 3, updated_gaur, startRow = startRow_ga, startCol = startCol, tableStyle = "TableStylelight9")
+column_types <- c("general","general","number","number","number")
+applyStylesToColumns(wb,3, updated_gaur, column_types, startRow_ga, startCol)
+writeData(wb, 3, x = "Type of Guarantor by Borrower + Solvency Individual Guarantor", startCol = startCol, startRow = startRow_ga-1)
+mergeCells(wb, 3, startCol:(startCol + ncol(updated_gaur) - 1), rows = startRow_ga-1)
+applyCustomStyles(wb, 3, updated_gaur, startRow_ga, startCol)
+
+
 
 
 

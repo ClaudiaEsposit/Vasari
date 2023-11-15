@@ -34,7 +34,9 @@ entities.loans <- Entities  %>%
 
 
 ent.by.type <- entities.loans %>% 
-  select(type.subject,id.bor,gbv.original,province,type,area) %>% distinct(id.bor,gbv.original,area,.keep_all = TRUE)%>%
+  select(type.subject,id.bor,gbv.original,province,type,area) %>% 
+  arrange(desc(gbv.original))%>%
+  distinct(id.bor,gbv.original,area,.keep_all = TRUE)%>%
   group_by(id.bor) %>% 
   summarise(gbv.original=sum(gbv.original),area=first(area),province=first(province),
             type=first(type),type.subject=first(type.subject))
@@ -269,8 +271,8 @@ applyStylesToColumns(wb,2, updated_loans, column_types, startRow_loans, startCol
 writeData(wb, 2, x = "Type Loans by Borrower", startCol, startRow_loans-1)
 mergeCells(wb, 2, startCol:(startCol + ncol(updated_loans) - 1),startRow_loans-1)
 applyCustomStyles(wb,2, updated_loans, startRow_loans, startCol)
-addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_loans+2, cols = startCol+1,stack = TRUE)
-addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_loans+2, cols = startCol+3,stack = TRUE)
+addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_loans+3, cols = startCol+1,stack = TRUE)
+addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_loans+3, cols = startCol+3,stack = TRUE)
 
 #formatting province
 startRow_prot <- startRow_loans+nrow(updated_loans)+3
@@ -316,7 +318,7 @@ province_plot <- ggplot(data = plot_prvince, aes(x = `GBV(€k)`, y = `Province`
   labs(
     title = "Top 5 Province by GBV",
     subtitle = "Borrower level",
-    x = "Total GBV(€k)",
+    x = "Total GBV(€)",
     y = "Province"
   ) +
   scale_x_continuous(labels = scales::comma) +
@@ -341,7 +343,7 @@ area_plot <- ggplot(data = plot_area, aes(x = `GBV(€k)`, y = `Area`)) +
   labs(
     title = "GBV by Area",
     subtitle = "Borrower level",
-    x = "Total GBV(€k)",
+    x = "Total GBV(€)",
     y = "Area"
   ) +
   scale_x_continuous(labels = scales::comma) +

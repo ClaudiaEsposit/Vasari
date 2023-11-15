@@ -50,7 +50,7 @@ add_gbv_range_column <- function(data) {
 filtered_data <-add_gbv_range_column(filtered_data)%>%select(-vintage)
 
 #type_loans
-gbv_help <- filtered_data %>%
+gbv_help <- filtered_data %>%arrange(desc(gbv))%>%
   group_by(type) %>%
   summarize(
     numb.loan = n_distinct(id.loan),perc.loan = sum(numb.loan) / sum(numb.loans),gbv_tot = sum(gbv),
@@ -272,7 +272,7 @@ range_plot <- ggplot(data = plot_range, aes(x = `Range GBV`, y = `GBV(€k)`)) +
     title = "Range GBV by Loan",
     subtitle = "Loan level",
     x = "Range GBV",
-    y = "Total GBV(€k)"
+    y = "Total GBV(€)"
   ) +
   scale_y_continuous(labels = scales::comma) +
   theme_minimal()
@@ -293,7 +293,7 @@ vintage_plot <- ggplot(data = plot_vintage, aes(x = `Range Vintage`, y = `GBV(�
     title = "Range Vintage by Loan",
     subtitle = "Loan level",
     x = "Range Vintage",
-    y = "Total GBV(€k)"
+    y = "Total GBV(€)"
   ) +
   scale_y_continuous(labels = scales::comma) +
   theme_minimal()

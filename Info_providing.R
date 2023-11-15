@@ -82,7 +82,7 @@ Info_pg <- Info_pg %>%
   mutate(status = case_when(
     str_detect(status, "attiva") ~ 'active',
     str_detect(status, "cancellata") ~ 'canceled',
-    str_detect(status,"fallita") ~ 'ceased',
+    str_detect(status,"fallita") ~ 'bankruptcy',
     str_detect(status,"in procedura concorsuale") ~ 'insolvency',
     str_detect(status,"in scioglimento / liquidazione") ~ 'liquidation',
     str_detect(status,"inattiva") ~ 'inactive',
