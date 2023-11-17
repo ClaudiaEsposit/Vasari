@@ -1,9 +1,9 @@
-#---------------------------- a)Intro --------------------------------------####
-cat('\014')
-rm(list=ls())
-source("Library.R")
-source("Functions.R")
-source("Vanilla.R")
+# #---------------------------- a)Intro --------------------------------------####
+# cat('\014')
+# rm(list=ls())
+# source("Library.R")
+# source("Functions.R")
+# source("Vanilla.R")
 #----------------------------- b)Check -------------------------------------####
 Loans_check<- Loans%>%
   select(id.loan,id.bor,gbv.original,principal,interest,expenses,date.status)%>%
@@ -87,12 +87,14 @@ NDG_count <- NDG %>%
 
 both <- NDG_count %>% filter(role == "both") %>% select(id.bor) 
 g <- Guarantors %>% filter(id.gar %in% both$id.bor & id.gar != id.bor) %>% #This filters the rows of Guarantors where the "id.gar" is in the list of "id.bor" from the previous step (both$id.bor) and where "id.gar" is not equal to "id.bor".
-  select(id.bor, name) %>% distinct() %>% 
+  select(id.bor, name,id.gar) %>% distinct() %>% 
   mutate(role = 'guarantor')  
 
 counterparties <- NDG_count %>% mutate(role= case_when(role == "both"  ~ "borrower",
                                                        role == "borrower"  ~ "borrower",
                                                        role == "guarantor" ~  "guarantor"))
+count_link<- counterparties
+
 counterparties <- counterparties %>% bind_rows(g)
 counterparties$id.counterparty <- paste0("c_", seq_len(nrow(counterparties)))
 Counterparties <- counterparties%>%
@@ -139,10 +141,41 @@ entities$name <- gsub(' time house','',entities$name)
 
 #--------------------------- g)Link_c_e_Table ------------------------------####
 
-link.counterparties.entities <- Counterparties %>% select (id.counterparty, id.bor)  
-link.counterparties.entities <- link.counterparties.entities %>% 
+row_to_split <- 245
+
+count <- Counterparties %>% slice(1:(row_to_split - 1))
+gar <- Counterparties %>% slice(row_to_split:nrow(Counterparties))%>%
+  left_join(g,by="name",relationship="many-to-many")%>%
+  select(id.counterparty,id.bor=id.gar)%>%distinct()%>%
+  left_join(entities%>%select(id.bor,id.entity)%>% divide_column_by_character(., id.bor, ","),
+            by= "id.bor", relationship = "many-to-many")%>% select(-id.bor)%>%distinct()
+cntprova <- count %>% select (id.counterparty, id.bor)
+cntprova <- cntprova %>%
   left_join(entities %>% select(id.bor, id.entity) %>% divide_column_by_character(., id.bor, ","),
-            by= "id.bor", relationship = "many-to-many")  %>% select(-id.bor)
+            by= "id.bor", relationship = "many-to-many")  %>% select(-id.bor)%>%distinct()
+link.counterparties.entities<-cntprova%>%bind_rows(gar)
+
+
+# count_link<-count_link%>%
+#   select(id.bor)%>%
+# g_link<-g%>%
+#   rename(id.bor=id.gar,id.borbor=id.bor)%>%
+#   select(id.bor,id.borbor)%>%
+# prova<-count_link%>%bind_rows(g_link)%>%
+#   mutate(id.borbor = coalesce(id.borbor, id.bor))%>%
+#   rename(id.gar=id.bor,id.bor=id.borbor)%>%
+#   left_join(Counterparties,by="id.bor",relationship="many-to-many")%>%
+#   select(id.gar,id.counterparty)%>%distinct()
+#   rename(id.bor=id.gar)%>%
+#   left_join(entities %>% select(id.bor, id.entity) %>% divide_column_by_character(., id.bor, ","),
+#             by= "id.bor", relationship = "many-to-many")  %>% select(-id.bor)
+# 
+# count_prova<-Counterparties
+
+# link.counterparties.entities <- Counterparties %>% select (id.counterparty, id.bor)
+# link.counterparties.entities <- link.counterparties.entities %>%
+#   left_join(entities %>% select(id.bor, id.entity) %>% divide_column_by_character(., id.bor, ","),
+#             by= "id.bor", relationship = "many-to-many")  %>% select(-id.bor)
 
 entities <- entities %>% select(-id.bor)
 
@@ -164,12 +197,4 @@ Entities$province <- Geo$province[match(Entities$province, Geo$descr.prov)]
 Entities$region <- Geo$region[match(Entities$province, Geo$province)]
 Entities$area <- Geo$area[match(Entities$region, Geo$region)]
 
-PROVA<-NDG%>%
-  select(cf.piva)%>%
-  divide_column_by_character(cf.piva,",")%>%
-  distinct()
-prova<-Entities%>%
-  select(cf.piva)%>%
-  distinct()
-all_values_present <- all(PROVA$cf.piva %in% prova$cf.piva)
-values_not_present <- PROVA$cf.piva[!PROVA$cf.piva %in% prova$cf.piva]
+

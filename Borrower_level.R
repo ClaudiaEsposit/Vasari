@@ -1,31 +1,31 @@
 #---------------------------- a)Intro --------------------------------------####
-cat('\014')
-rm(list=ls())
-setwd("~/Vasari")
-source("Library.R")
-source("Functions.R")
-source("Vanilla.R")
-source("Tables.R")
-source("Info_providing.R")
+# cat('\014')
+# rm(list=ls())
+# setwd("~/Vasari")
+# source("Library.R")
+# source("Functions.R")
+# source("Vanilla.R")
+# source("Tables.R")
+# source("Info_providing.R")
 
 #---------------------------- c)Tables_by_borrower ------------------------####
-numb.loans <- n_distinct(Loans_table$id.loan)
-sum.gbv <- sum(Loans_table$gbv.original)
-sum.borr <- n_distinct(Loans_table$id.bor)
-average.loan <- sum.gbv/numb.loans
-average.borr <- sum.gbv/sum.borr
-sum.principal_tot <-sum(Loans_table$principal)
-
-col_tot <- c("N Borrowers" ,"N Loans","GBV(€k)",  "Avg GBV per Borrower(€k)","Avg GBV per Loans(€k)")
-total_table <- data.frame(
-  "N Borrowers" = sum.borr,
-  "N Loans" = numb.loans,
-  "GBV(€k)" = sum.gbv,
-  "Avg GBV per Borrower(€k)" = sum.gbv / sum.borr,
-  "Avg GBV per Loans(€k)" = sum.gbv / numb.loans
-)
-colnames(total_table) <- col_tot
-cutoff.date <- as.Date("2023-04-29")
+# numb.loans <- n_distinct(Loans_table$id.loan)
+# sum.gbv <- sum(Loans_table$gbv.original)
+# sum.borr <- n_distinct(Loans_table$id.bor)
+# average.loan <- sum.gbv/numb.loans
+# average.borr <- sum.gbv/sum.borr
+# sum.principal_tot <-sum(Loans_table$principal)
+# 
+# col_tot <- c("N Borrowers" ,"N Loans","GBV(€k)",  "Avg GBV per Borrower(€k)","Avg GBV per Loans(€k)")
+# total_table <- data.frame(
+#   "N Borrowers" = sum.borr,
+#   "N Loans" = numb.loans,
+#   "GBV(€k)" = sum.gbv,
+#   "Avg GBV per Borrower(€k)" = sum.gbv / sum.borr,
+#   "Avg GBV per Loans(€k)" = sum.gbv / numb.loans
+# )
+# colnames(total_table) <- col_tot
+# cutoff.date <- as.Date("2023-04-29")
 entities.loans <- Entities  %>% 
   left_join(link.counterparties.entities, by= 'id.entity',relationship = "many-to-many") %>% 
   left_join(Counterparties,by = 'id.counterparty') %>%
@@ -41,71 +41,71 @@ ent.by.type <- entities.loans %>%
   summarise(gbv.original=sum(gbv.original),area=first(area),province=first(province),
             type=first(type),type.subject=first(type.subject))
 
-#gbv range column
-add_gbv_range <- function(data) {
+#gbv range_gbv column
+add_gbv_range_gbv <- function(data) {
   breaks <- c(0, 50000,100000, Inf)
   labels <- c("0-50k", "50-100k", "100k+")
   result <- data %>%
     mutate(
-      range.gbv = cut(gbv.original, breaks = breaks, labels = labels, right = FALSE)
+      range_gbv.gbv = cut(gbv.original, breaks = breaks, labels = labels, right = FALSE)
     )
   return(result)
 }
-ent.by.type <-add_gbv_range(ent.by.type)
-gbv_help <- ent.by.type %>%
+ent.by.type <-add_gbv_range_gbv(ent.by.type)
+gbv_borr <- ent.by.type %>%
   group_by(type.subject) %>%
   summarize(
     numb.borr = n_distinct(id.bor),perc.borr = sum(numb.borr) / sum(sum.borr),gbv_tot = sum(gbv.original),
     mean.gbv = gbv_tot/numb.borr,perc.gbv = sum(gbv_tot) / sum(sum.gbv)
   )
 
-total_row <- data.frame(
-  type.subject = "Total",numb.borr = sum(gbv_help$numb.borr),
-  gbv_tot = sum(gbv_help$gbv_tot), perc.borr = sum(gbv_help$perc.borr),
-  mean.gbv = sum(gbv_help$mean.gbv * gbv_help$numb.borr) / sum(gbv_help$numb.borr),
-  perc.gbv = sum(gbv_help$perc.gbv))
+tot_row <- data.frame(
+  type.subject = "Total",numb.borr = sum(gbv_borr$numb.borr),
+  gbv_tot = sum(gbv_borr$gbv_tot), perc.borr = sum(gbv_borr$perc.borr),
+  mean.gbv = sum(gbv_borr$mean.gbv * gbv_borr$numb.borr) / sum(gbv_borr$numb.borr),
+  perc.gbv = sum(gbv_borr$perc.gbv))
 
-updated_df <- bind_rows(gbv_help, total_row)
-updated_df<-updated_df%>%
+updated_gbv <- bind_rows(gbv_borr, tot_row)
+updated_gbv<-updated_gbv%>%
   rename("Type of subject"=type.subject,"N Bor"=numb.borr,
          "% Bor"=perc.borr,"GBV(€k)"=gbv_tot,"Mean GBV(€k)"=mean.gbv,"% GBV"=perc.gbv)%>%
   arrange(factor(`Type of subject`, levels = c("Total","individual", "co-owners","legal person")))
-updated_df$`Type of subject` <- str_to_title(updated_df$`Type of subject`)
+updated_gbv$`Type of subject` <- str_to_title(updated_gbv$`Type of subject`)
 
 
 
-# RANGE GBV
-range <- ent.by.type %>%
-  group_by(type.subject,range.gbv) %>%
+# range_gbv GBV
+range_gbv <- ent.by.type %>%
+  group_by(type.subject,range_gbv.gbv) %>%
   summarize(
     numb.borr = n_distinct(id.bor),perc.borr = sum(numb.borr) / sum(sum.borr),gbv_tot = sum(gbv.original),
     mean.gbv = gbv_tot/numb.borr,perc.gbv = sum(gbv_tot) / sum(sum.gbv)
   )
 
-total_row_range <- data.frame(
-  type.subject = "Total",range.gbv = "",
-  gbv_tot = sum(range$gbv_tot),numb.borr = sum(range$numb.borr), perc.borr = sum(range$perc.borr),
-  mean.gbv = sum(range$mean.gbv * range$numb.borr) / sum(range$numb.borr),
-  perc.gbv = sum(range$perc.gbv))
+tot_row_range_gbv <- data.frame(
+  type.subject = "Total",range_gbv.gbv = "",
+  gbv_tot = sum(range_gbv$gbv_tot),numb.borr = sum(range_gbv$numb.borr), perc.borr = sum(range_gbv$perc.borr),
+  mean.gbv = sum(range_gbv$mean.gbv * range_gbv$numb.borr) / sum(range_gbv$numb.borr),
+  perc.gbv = sum(range_gbv$perc.gbv))
 
-total_owners <- range %>%
+total_owners <- range_gbv %>%
   group_by(type.subject) %>%
   summarize(type.subject = if ("individual" %in% type.subject) "Individual Tot."
             else if ("corporate" %in% type.subject) "Corporate Tot.",
-            range.gbv = "",gbv_tot = sum(gbv_tot),
+            range_gbv.gbv = "",gbv_tot = sum(gbv_tot),
             numb.borr = sum(numb.borr),perc.borr = sum(perc.borr),
             mean.gbv = gbv_tot / numb.borr,
             perc.gbv = sum(perc.gbv))
 total_owners <- as.data.frame(total_owners)
 
-updated_range <- bind_rows(range, total_row_range,total_owners)
-updated_range<-updated_range%>%
-  rename("Type of subject"=type.subject,"Range GBV"=range.gbv,"N Bor"=numb.borr,
+updated_range_gbv <- bind_rows(range_gbv, tot_row_range_gbv,total_owners)
+updated_range_gbv<-updated_range_gbv%>%
+  rename("Type of subject"=type.subject,"range_gbv GBV"=range_gbv.gbv,"N Bor"=numb.borr,
          "% Bor"=perc.borr,"GBV(€k)"=gbv_tot,"Mean GBV(€k)"=mean.gbv,"% GBV"=perc.gbv)%>%
   arrange(factor(`Type of subject`, levels = c("Total","Individual Tot.", "individual","Corporate Tot.","corporate")),
-          factor(`Range GBV`,levels = c("0-50k", "50-100k", "100k+")))
-updated_range$`Type of subject` <- str_to_title(updated_range$`Type of subject`)
-updated_range$`Range GBV` <- str_to_title(updated_range$`Range GBV`)
+          factor(`range_gbv GBV`,levels = c("0-50k", "50-100k", "100k+")))
+updated_range_gbv$`Type of subject` <- str_to_title(updated_range_gbv$`Type of subject`)
+updated_range_gbv$`range_gbv GBV` <- str_to_title(updated_range_gbv$`range_gbv GBV`)
 
 #loans
 type_loans <- ent.by.type %>%
@@ -115,12 +115,12 @@ type_loans <- ent.by.type %>%
     mean.gbv = gbv_tot/numb.borr,perc.gbv = sum(gbv_tot) / sum(sum.gbv)
   )
 
-total_row_loans <- data.frame(
+tot_row_loans <- data.frame(
   type = "Total",gbv_tot = sum(type_loans$gbv_tot),numb.borr = sum(type_loans$numb.borr), perc.borr = sum(type_loans$perc.borr),
   mean.gbv = sum(type_loans$mean.gbv * type_loans$numb.borr) / sum(type_loans$numb.borr),
   perc.gbv = sum(type_loans$perc.gbv))
 
-updated_loans <- bind_rows(type_loans, total_row_loans)
+updated_loans <- bind_rows(type_loans, tot_row_loans)
 updated_loans<-updated_loans%>%
   rename("Type of Credit"=type,"N Bor"=numb.borr,
          "% Bor"=perc.borr,"GBV(€k)"=gbv_tot,"Mean GBV(€k)"=mean.gbv,"% GBV"=perc.gbv)%>%
@@ -135,12 +135,12 @@ province_true <- ent.by.type %>%
     numb.borr = n_distinct(id.bor),perc.borr = sum(numb.borr) / sum(sum.borr),gbv_tot = sum(gbv.original),
     mean.gbv = gbv_tot/numb.borr,perc.gbv = sum(gbv_tot) / sum(sum.gbv)
   )
-total_row_prot <- data.frame(
+tot_row_prot <- data.frame(
   province = "Total",numb.borr = sum(province_true$numb.borr), perc.borr = sum(province_true$perc.borr),
   gbv_tot = sum(province_true$gbv_tot),
   mean.gbv = sum(province_true$mean.gbv * province_true$numb.borr) / sum(province_true$numb.borr),
   perc.gbv = sum(province_true$perc.gbv))
-updated_prot <- bind_rows(province_true, total_row_prot)
+updated_prot <- bind_rows(province_true, tot_row_prot)
 updated_prot<-updated_prot%>%
   rename("Province"=province,"N Bor"=numb.borr,
          "% Bor"=perc.borr,"GBV(€k)"=gbv_tot,"Mean GBV(€k)"=mean.gbv,"% GBV"=perc.gbv)%>%
@@ -159,12 +159,12 @@ area <- ent.by.type %>%
     numb.borr = n_distinct(id.bor),perc.borr = sum(numb.borr) / sum(sum.borr),gbv_tot = sum(gbv.original),
     mean.gbv = gbv_tot/numb.borr,perc.gbv = sum(gbv_tot) / sum(sum.gbv)
   )
-total_row_area <- data.frame(
+tot_row_area <- data.frame(
   area = "Total",numb.borr = sum(area$numb.borr), perc.borr = sum(area$perc.borr),
   gbv_tot = sum(area$gbv_tot),
   mean.gbv = sum(area$mean.gbv * area$numb.borr) / sum(area$numb.borr),
   perc.gbv = sum(area$perc.gbv))
-updated_area <- bind_rows(area, total_row_area)
+updated_area <- bind_rows(area, tot_row_area)
 updated_area<-updated_area%>%
   rename("Area"=area,"N Bor"=numb.borr,
          "% Bor"=perc.borr,"GBV(€k)"=gbv_tot,"Mean GBV(€k)"=mean.gbv,"% GBV"=perc.gbv)%>%
@@ -199,34 +199,34 @@ updated_area$Area <- str_to_title(updated_area$Area)
 updated_area$Area <- ifelse(is.na(updated_area$Area), "N/A", updated_area$Area)
 updated_area <- updated_area[order(-updated_area$`GBV(€k)`), ]
 
-#SEC/UNSEC + RANGE GBV
-range_total <- ent.by.type %>%
-  group_by(range.gbv) %>%
+#SEC/UNSEC + range_gbv GBV
+range_gbv_total <- ent.by.type %>%
+  group_by(range_gbv.gbv) %>%
   summarize(
     numb.borr = n_distinct(id.bor),perc.borr = sum(numb.borr) / sum(sum.borr),gbv_tot = sum(gbv.original),
     mean.gbv = gbv_tot/numb.borr,perc.gbv = sum(gbv_tot) / sum(sum.gbv)
   )
 
-total_row_range_tot <- data.frame(
-  range.gbv = "Total",
-  gbv_tot = sum(range$gbv_tot),numb.borr = sum(range$numb.borr), perc.borr = sum(range$perc.borr),
-  mean.gbv = sum(range$mean.gbv * range$numb.borr) / sum(range$numb.borr),
-  perc.gbv = sum(range$perc.gbv))
+tot_row_range_gbv_tot <- data.frame(
+  range_gbv.gbv = "Total",
+  gbv_tot = sum(range_gbv$gbv_tot),numb.borr = sum(range_gbv$numb.borr), perc.borr = sum(range_gbv$perc.borr),
+  mean.gbv = sum(range_gbv$mean.gbv * range_gbv$numb.borr) / sum(range_gbv$numb.borr),
+  perc.gbv = sum(range_gbv$perc.gbv))
 
 
 
-updated_range_tot <- bind_rows(range_total, total_row_range_tot)
-updated_range_tot<-updated_range_tot%>%
-  rename("Range GBV"=range.gbv,"N Bor"=numb.borr,
+updated_range_gbv_tot <- bind_rows(range_gbv_total, tot_row_range_gbv_tot)
+updated_range_gbv_tot<-updated_range_gbv_tot%>%
+  rename("range_gbv GBV"=range_gbv.gbv,"N Bor"=numb.borr,
          "% Bor"=perc.borr,"GBV(€k)"=gbv_tot,"Mean GBV(€k)"=mean.gbv,"% GBV"=perc.gbv)%>%
-  arrange(factor(`Range GBV`,levels = c("Total","0-50k", "50-100k","100k+")))
-updated_range_tot$`Range GBV` <- str_to_title(updated_range_tot$`Range GBV`)
+  arrange(factor(`range_gbv GBV`,levels = c("Total","0-50k", "50-100k","100k+")))
+updated_range_gbv_tot$`range_gbv GBV` <- str_to_title(updated_range_gbv_tot$`range_gbv GBV`)
 
 
 #------------------------------d)Excel-------------------------------------####
 
 source("Excel_format.R")
-wb <- loadWorkbook("Tables.xlsx")
+wb <- loadWorkbook("Tables2.xlsx")
 addWorksheet(wb, "Report_Borrowers")
 showGridLines(wb, sheet = 2, showGridLines = FALSE)
 writeDataTable(wb, 2, total_table, startRow = startRow, startCol = startCol, tableStyle = "TableStylelight9")
@@ -240,31 +240,31 @@ addStyle(wb, 2, style = section_style,rows = startRow+nrow(total_table),
 
 #formatting type subject
 startRow_updated <- startRow+nrow(total_table)+3
-writeDataTable(wb, 2, updated_df, startRow = startRow_updated, startCol = startCol, tableStyle = "TableStylelight9")
+writeDataTable(wb, 2, updated_gbv, startRow = startRow_updated, startCol = startCol, tableStyle = "TableStylelight9")
 column_types <- c("general", "number", "percentage", "currency", "currency", "percentage")
-applyStylesToColumns(wb,2, updated_df, column_types, startRow_updated, startCol)
+applyStylesToColumns(wb,2, updated_gbv, column_types, startRow_updated, startCol)
 writeData(wb, 2, x = "GBV per Type of Subject", startCol = startCol, startRow = startRow_updated-1)
-mergeCells(wb, 2, startCol:(startCol + ncol(updated_df) - 1), rows = startRow_updated-1)
-applyCustomStyles(wb, 2, updated_df, startRow_updated, startCol)
+mergeCells(wb, 2, startCol:(startCol + ncol(updated_gbv) - 1), rows = startRow_updated-1)
+applyCustomStyles(wb, 2, updated_gbv, startRow_updated, startCol)
 addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_updated+2, cols = startCol+1,stack = TRUE)
 addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_updated+3, cols = startCol+3,stack = TRUE)
 
 
-#formatting range
-startRow_range <- startRow_updated+nrow(updated_df)+3
-writeDataTable(wb,2, updated_range, startRow = startRow_range, startCol = startCol, tableStyle = "TableStylelight9")
+#formatting range_gbv
+startRow_range_gbv <- startRow_updated+nrow(updated_gbv)+3
+writeDataTable(wb,2, updated_range_gbv, startRow = startRow_range_gbv, startCol = startCol, tableStyle = "TableStylelight9")
 column_types <- c("general", "general", "number", "percentage", "currency", "currency", "percentage")
-applyStylesToColumns(wb,2, updated_range, column_types, startRow_range, startCol)
-writeData(wb, 2, x = "GBV per Type of Subject + Range GBV", startCol = startCol, startRow = startRow_range-1)
-mergeCells(wb, 2, startCol:(startCol + ncol(updated_range) - 1), rows = startRow_range-1)
-applyCustomStyles(wb,2, updated_range, startRow_range, startCol)
-addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_range+5, cols = startCol+2,stack = TRUE)
-addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_range+9, cols = startCol+2,stack = TRUE)
-addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_range+5, cols = startCol+4,stack = TRUE)
-addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_range+9, cols = startCol+4,stack = TRUE)
+applyStylesToColumns(wb,2, updated_range_gbv, column_types, startRow_range_gbv, startCol)
+writeData(wb, 2, x = "GBV per Type of Subject + range_gbv GBV", startCol = startCol, startRow = startRow_range_gbv-1)
+mergeCells(wb, 2, startCol:(startCol + ncol(updated_range_gbv) - 1), rows = startRow_range_gbv-1)
+applyCustomStyles(wb,2, updated_range_gbv, startRow_range_gbv, startCol)
+addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_range_gbv+5, cols = startCol+2,stack = TRUE)
+addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_range_gbv+9, cols = startCol+2,stack = TRUE)
+addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_range_gbv+5, cols = startCol+4,stack = TRUE)
+addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_range_gbv+9, cols = startCol+4,stack = TRUE)
 
 #formatting loans
-startRow_loans <- startRow_range+nrow(updated_range)+3
+startRow_loans <- startRow_range_gbv+nrow(updated_range_gbv)+3
 writeDataTable(wb,2, updated_loans, startRow = startRow_loans, startCol = startCol, tableStyle = "TableStylelight9")
 column_types <- c("general", "number", "percentage", "currency", "currency", "percentage")
 applyStylesToColumns(wb,2, updated_loans, column_types, startRow_loans, startCol)
@@ -292,14 +292,14 @@ writeData(wb, 2, x = "GBV by Area", startCol, startRow_area-1)
 mergeCells(wb, 2, startCol:(startCol + ncol(updated_area) - 1),startRow_area-1)
 applyCustomStyles(wb,2, updated_area, startRow_area, startCol)
 
-#Range tot gbv
+#range_gbv tot gbv
 startRow_GBV <- startRow_area+nrow(updated_area)+3
-writeDataTable(wb,2, updated_range_tot, startRow = startRow_GBV, startCol = startCol, tableStyle = "TableStylelight9")
+writeDataTable(wb,2, updated_range_gbv_tot, startRow = startRow_GBV, startCol = startCol, tableStyle = "TableStylelight9")
 column_types <- c("general", "number", "percentage", "currency", "currency", "percentage", "currency", "currency", "percentage")
-applyStylesToColumns(wb,2, updated_range_tot, column_types, startRow_GBV, startCol)
-writeData(wb, 2, x = "Borrower by Range GBV", startCol, startRow_GBV-1)
-mergeCells(wb, 2, startCol:(startCol + ncol(updated_range_tot) - 1),startRow_GBV-1)
-applyCustomStyles(wb,2, updated_range_tot, startRow_GBV, startCol)
+applyStylesToColumns(wb,2, updated_range_gbv_tot, column_types, startRow_GBV, startCol)
+writeData(wb, 2, x = "Borrower by range_gbv GBV", startCol, startRow_GBV-1)
+mergeCells(wb, 2, startCol:(startCol + ncol(updated_range_gbv_tot) - 1),startRow_GBV-1)
+applyCustomStyles(wb,2, updated_range_gbv_tot, startRow_GBV, startCol)
 addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_GBV+4, cols = startCol+1,stack = TRUE)
 addStyle(wb, sheet = 2, style = highlight_value, rows = startRow_GBV+4, cols = startCol+3,stack = TRUE)
 
@@ -355,5 +355,5 @@ print(area_plot_with_labels)
 insertPlot(wb,2,width = 6,height = 4,xy = NULL,startRow = startRow_prot,
            startCol = length(first_5_rowst) + 4,fileType = "png",units = "in",dpi = 300
 )
-saveWorkbook(wb,"Tables.xlsx", overwrite = TRUE)
+saveWorkbook(wb,"Tables2.xlsx", overwrite = TRUE)
 

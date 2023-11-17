@@ -153,7 +153,7 @@ updated_subject$`Type Subject` <- str_to_title(updated_subject$`Type Subject`)
 #---------------Excel------------------####
 
 source("Excel_format.R")
-wb <- loadWorkbook("Tables.xlsx")
+wb <- loadWorkbook("Tables2.xlsx")
 addWorksheet(wb, "Report_InfoProviding")
 showGridLines(wb, sheet = 3, showGridLines = FALSE)
 
@@ -264,5 +264,5 @@ applyCustomStyles(wb, 3, updated_gaur, startRow_ga, startCol)
 
 
 
-saveWorkbook(wb,"Tables.xlsx", overwrite = TRUE)
+saveWorkbook(wb,"Tables2.xlsx", overwrite = TRUE)
 

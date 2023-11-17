@@ -1,10 +1,10 @@
-cat('\014')
-rm(list=ls())
-setwd("~/Vasari")
-source("Library.R")
-source("Functions.R")
-source("Vanilla.R")
-source("Tables.R")
+# cat('\014')
+# rm(list=ls())
+# setwd("~/Vasari")
+# source("Library.R")
+# source("Functions.R")
+# source("Vanilla.R")
+# source("Tables.R")
 #--------------------------b)Infoproviding_pf-------------------------------####
 Info_pf <- read_excel("~/Vasari/Data/DD_PDL CON RESIDENZA + IVA - 199 POS. 12072023.xlsx", sheet = "Foglio1", range = "A1:V200",col_names = TRUE)
 Info_pf <- Info_pf %>%

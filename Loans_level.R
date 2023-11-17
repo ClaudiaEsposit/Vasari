@@ -1,11 +1,11 @@
 #---------------------------- a)Intro --------------------------------------####
-cat('\014')
-rm(list=ls())
-setwd("~/Vasari")
-source("Library.R")
-source("Functions.R")
-source("Vanilla.R")
-source("Tables.R")
+# cat('\014')
+# rm(list=ls())
+# setwd("~/Vasari")
+# source("Library.R")
+# source("Functions.R")
+# source("Vanilla.R")
+# source("Tables.R")
 #-----------------------------c)Loans_level--------------------------------####
 numb.loans <- n_distinct(Loans_table$id.loan)
 sum.gbv <- sum(Loans_table$gbv.original)
@@ -305,4 +305,4 @@ insertPlot(wb, 1, width = 6, height = 4, xy = NULL, startRow = startRow_vt + 3,
            startCol = length(updated_vintage_tot) + 4, fileType = "png", units = "in", dpi = 300)
 
 # Save the workbook
-saveWorkbook(wb, "Tables.xlsx", overwrite = TRUE)
+saveWorkbook(wb, "Tables2.xlsx", overwrite = TRUE)

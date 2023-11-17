@@ -1,8 +1,8 @@
 #---------------------------- a)Intro --------------------------------------####
-cat('\014')
-rm(list=ls())
-source("Library.R")
-source("Functions.R")
+# cat('\014')
+# rm(list=ls())
+# source("Library.R")
+# source("Functions.R")
 
 #---------------------------- b)NDG -------------------------------------####
 NDG <- read_excel("~/Vasari/Data/Vasari_LDT.xlsx", sheet = "Anagrafiche", range = "A1:AD245",col_names = TRUE)

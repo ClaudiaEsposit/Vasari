@@ -1,12 +1,12 @@
 #---------------------------- a)Intro --------------------------------------####
-cat('\014')
-rm(list=ls())
-setwd("~/Vasari")
-source("Library.R")
-source("Functions.R")
-source("Vanilla.R")
-source("Tables.R")
-source("Info_providing.R")
+# cat('\014')
+# rm(list=ls())
+# setwd("~/Vasari")
+# source("Library.R")
+# source("Functions.R")
+# source("Vanilla.R")
+# source("Tables.R")
+# source("Info_providing.R")
 #---------------------------- c)Tables_by_borrower ------------------------####
 entities.loans <- Entities  %>% 
   left_join(link.counterparties.entities, by= 'id.entity',relationship = "many-to-many") %>% 
