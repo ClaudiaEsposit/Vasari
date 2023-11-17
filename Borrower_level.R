@@ -9,23 +9,7 @@
 # source("Info_providing.R")
 
 #---------------------------- c)Tables_by_borrower ------------------------####
-# numb.loans <- n_distinct(Loans_table$id.loan)
-# sum.gbv <- sum(Loans_table$gbv.original)
-# sum.borr <- n_distinct(Loans_table$id.bor)
-# average.loan <- sum.gbv/numb.loans
-# average.borr <- sum.gbv/sum.borr
-# sum.principal_tot <-sum(Loans_table$principal)
-# 
-# col_tot <- c("N Borrowers" ,"N Loans","GBV(€k)",  "Avg GBV per Borrower(€k)","Avg GBV per Loans(€k)")
-# total_table <- data.frame(
-#   "N Borrowers" = sum.borr,
-#   "N Loans" = numb.loans,
-#   "GBV(€k)" = sum.gbv,
-#   "Avg GBV per Borrower(€k)" = sum.gbv / sum.borr,
-#   "Avg GBV per Loans(€k)" = sum.gbv / numb.loans
-# )
-# colnames(total_table) <- col_tot
-# cutoff.date <- as.Date("2023-04-29")
+
 entities.loans <- Entities  %>% 
   left_join(link.counterparties.entities, by= 'id.entity',relationship = "many-to-many") %>% 
   left_join(Counterparties,by = 'id.counterparty') %>%
